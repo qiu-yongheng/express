@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +22,7 @@ import com.eternal.express.data.source.local.PackagesLocalDataSource;
 import com.eternal.express.data.source.remote.PackagesRemoteDataSource;
 import com.eternal.express.mvp.companies.CompaniesFragment;
 import com.eternal.express.mvp.companies.CompaniesPresenter;
+import com.eternal.express.mvp.packages.PackageFilterType;
 import com.eternal.express.mvp.packages.PackagesFragment;
 import com.eternal.express.mvp.packages.PackagesPresenter;
 
@@ -37,12 +39,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     NavigationView mNavView;
     @BindView(R.id.drawer_layout)
     DrawerLayout mDrawerLayout;
-
+    /**
+     * 当前侧拉栏选中item
+     */
     private static final String KEY_NAV_ITEM = "CURRENT_NAV_ITEM";
+    /**
+     * 当前导航栏选中item
+     */
     private static final String CURRENT_FILTERING_KEY = "CURRENT_FILTERING_KEY";
     private PackagesFragment packagesFragment;
     private CompaniesFragment companiesFragment;
     private int selectedNavItem;
+    private PackagesPresenter packagesPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setWindowTransition();
         initView();
         initFragment(savedInstanceState);
-        initPresenter();
+        initPresenter(savedInstanceState);
 
         if (selectedNavItem == 0) {
             showFragment(packagesFragment);
@@ -87,10 +95,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     /**
      * 初始化presenter
+     * @param savedInstanceState
      */
-    private void initPresenter() {
-        new PackagesPresenter(packagesFragment, PackagesRepository.getInstance(PackagesRemoteDataSource.getInstance(), PackagesLocalDataSource.getInstance()));
+    private void initPresenter(Bundle savedInstanceState) {
+        packagesPresenter = new PackagesPresenter(packagesFragment, PackagesRepository.getInstance(PackagesRemoteDataSource.getInstance(), PackagesLocalDataSource.getInstance()));
         new CompaniesPresenter();
+
+        // Get data from Bundle.
+        if (savedInstanceState != null) {
+            PackageFilterType currentFiltering = (PackageFilterType) savedInstanceState.getSerializable(CURRENT_FILTERING_KEY);
+            packagesPresenter.setFiltering(currentFiltering);
+        }
     }
 
     /**
@@ -176,8 +191,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-
-        return false;
+        switch (item.getItemId()) {
+            case R.id.nav_home:
+                showFragment(packagesFragment);
+                break;
+            case R.id.nav_companies:
+                showFragment(companiesFragment);
+                break;
+            case R.id.nav_switch_theme:
+                break;
+            case R.id.nav_settings:
+                break;
+            case R.id.nav_about:
+                break;
+        }
+        // 关闭drawerlayout
+        mDrawerLayout.closeDrawer(GravityCompat.START);
+        return true;
     }
 
     /**
@@ -188,6 +218,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        // 1. 保存当前导航栏选中item
+        outState.putSerializable(CURRENT_FILTERING_KEY, packagesPresenter.getFiltering());
         // 2. 保存当前显示的fragment
         Menu menu = mNavView.getMenu();
         if (menu.findItem(R.id.nav_home).isChecked()) {

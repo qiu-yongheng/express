@@ -2,8 +2,11 @@ package com.eternal.express.mvp.packages;
 
 import android.support.annotation.NonNull;
 
+import com.eternal.express.data.bean.Package;
 import com.eternal.express.mvp.BasePresenter;
 import com.eternal.express.mvp.BaseView;
+
+import java.util.List;
 
 /**
  * @author 邱永恒
@@ -18,9 +21,9 @@ public interface PackagesContract {
 
         void showEmptyView(boolean toShow);
 
-        void showPackages();
+        void showPackages(@NonNull List<Package> list);
 
-        void shareTo();
+        void shareTo(@NonNull Package pack);
 
         void showPackageRemovedMsg(String packageName);
 

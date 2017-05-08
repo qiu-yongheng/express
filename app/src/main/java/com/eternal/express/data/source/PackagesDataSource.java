@@ -18,6 +18,8 @@ package com.eternal.express.data.source;
 
 import android.support.annotation.NonNull;
 
+import com.eternal.express.data.bean.Package;
+
 import java.util.List;
 
 import io.reactivex.Observable;

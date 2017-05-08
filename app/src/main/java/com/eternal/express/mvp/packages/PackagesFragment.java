@@ -17,6 +17,8 @@ import android.widget.LinearLayout;
 
 import com.eternal.express.R;
 
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -129,14 +131,15 @@ public class PackagesFragment extends Fragment implements PackagesContract.View 
     }
 
     @Override
-    public void showPackages() {
+    public void showPackages(@NonNull List<Package> list) {
 
     }
 
     @Override
-    public void shareTo() {
+    public void shareTo(@NonNull Package pack) {
 
     }
+
 
     @Override
     public void showPackageRemovedMsg(String packageName) {

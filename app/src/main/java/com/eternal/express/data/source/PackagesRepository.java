@@ -3,6 +3,8 @@ package com.eternal.express.data.source;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.eternal.express.data.bean.Package;
+
 import java.util.List;
 import java.util.Map;
 
