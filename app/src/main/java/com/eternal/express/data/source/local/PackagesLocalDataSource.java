@@ -3,11 +3,16 @@ package com.eternal.express.data.source.local;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.eternal.express.data.bean.Package;
 import com.eternal.express.data.source.PackagesDataSource;
+import com.eternal.express.realm.RealmHelper;
 
 import java.util.List;
 
 import io.reactivex.Observable;
+import io.realm.Realm;
+import io.realm.Sort;
+
 
 /**
  * Created by lizhaotailang on 2017/2/25.
@@ -37,10 +42,16 @@ public class PackagesLocalDataSource implements PackagesDataSource {
         INSTANCE = null;
     }
 
-
+    /**
+     * 获取数据库中的包，并按时间戳降序排序
+     * @return
+     */
     @Override
     public Observable<List<Package>> getPackages() {
-        return null;
+        Realm rlm = RealmHelper.newRealmInstance();
+
+        return Observable.just(rlm.copyFromRealm(rlm.where(Package.class)
+                .findAllSorted("timestamp", Sort.DESCENDING)));
     }
 
     @Override

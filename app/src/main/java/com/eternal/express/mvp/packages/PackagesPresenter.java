@@ -49,11 +49,13 @@ public class PackagesPresenter implements PackagesContract.Presenter{
 
     /**
      * 创建读取数据的任务, 添加到RX队列中
+     * 从数据库获取本地数据(不通过网络)
      */
     @Override
     public void loadPackages() {
         // 清除之前的任务
         mCompositeDisposable.clear();
+        /** 从数据库获取数据 */
         Disposable disposable = packagesRepository
                 .getPackages()
                 .flatMap(new Function<List<Package>, ObservableSource<Package>>() { // 遍历

@@ -3,6 +3,7 @@ package com.eternal.express.data.source.remote;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.eternal.express.data.bean.Package;
 import com.eternal.express.data.source.PackagesDataSource;
 
 import java.util.List;

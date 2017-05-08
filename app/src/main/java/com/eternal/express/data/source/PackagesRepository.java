@@ -5,10 +5,18 @@ import android.support.annotation.Nullable;
 
 import com.eternal.express.data.bean.Package;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 
 /**
  * 将包从数据源加载到缓存中的具体实现。
@@ -54,10 +62,56 @@ public class PackagesRepository implements PackagesDataSource {
         INSTANCE = null;
     }
 
-
+    /**
+     *
+     * @return
+     */
     @Override
     public Observable<List<Package>> getPackages() {
-        return null;
+        /** 如果已经从数据库获取过数据, 因为realm数据库是同步更新数据的, 我们只要重新根据时间戳更新排序就好了 */
+        if (cachedPackages != null) {
+            return Observable.fromCallable(new Callable<List<Package>>() {
+                @Override
+                public List<Package> call() throws Exception {
+                    List<Package> arrayList = new ArrayList<Package>(cachedPackages.values());
+                    // 按时间戳排序，使列表以下降方式显示
+                    Collections.sort(arrayList, new Comparator<Package>() {
+                        @Override
+                        public int compare(Package o1, Package o2) {
+                            if (o1.getTimestamp() > o2.getTimestamp()) {
+                                return -1;
+                            } else if (o1.getTimestamp() < o2.getTimestamp()) {
+                                return 1;
+                            }
+                            return 0;
+                        }
+                    });
+                    return arrayList;
+                }
+            });
+        } else {
+
+            cachedPackages = new LinkedHashMap<>();
+
+            /** 从本地数据库获取数据, 保存到map集合中 */
+            return packagesLocalDataSource
+                    .getPackages()
+                    .flatMap(new Function<List<Package>, ObservableSource<List<Package>>>() {
+                        @Override
+                        public ObservableSource<List<Package>> apply(List<Package> packages) throws Exception {
+                            return Observable
+                                    .fromIterable(packages)
+                                    .doOnNext(new Consumer<Package>() {
+                                        @Override
+                                        public void accept(Package aPackage) throws Exception {
+                                            cachedPackages.put(aPackage.getNumber(), aPackage);
+                                        }
+                                    })
+                                    .toList()
+                                    .toObservable();
+                        }
+                    });
+        }
     }
 
     @Override

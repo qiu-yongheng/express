@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.eternal.express.R;
+import com.eternal.express.data.bean.Package;
 
 import java.util.List;
 
