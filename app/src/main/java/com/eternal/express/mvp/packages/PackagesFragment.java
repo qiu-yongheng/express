@@ -10,6 +10,8 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,6 +46,14 @@ public class PackagesFragment extends Fragment implements PackagesContract.View 
     BottomNavigationView mBottomNavigationView;
     private PackagesContract.Presenter presenter;
 
+    /**
+     * 创建fragment对象
+     * @return
+     */
+    public static PackagesFragment newInstance() {
+        return new PackagesFragment();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -66,7 +76,9 @@ public class PackagesFragment extends Fragment implements PackagesContract.View 
         return view;
     }
 
-
+    /**
+     * 初始化点击事件
+     */
     private void initListener() {
         // 1. 导航栏点击切换fragment
         mBottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -106,14 +118,72 @@ public class PackagesFragment extends Fragment implements PackagesContract.View 
         });
     }
 
+    /**
+     * 初始化view
+     * @param view
+     */
     @Override
     public void initViews(View view) {
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
-    public static PackagesFragment newInstance() {
-        return new PackagesFragment();
+    /**
+     * 界面显示的时候, 重新读取数据库的数据
+     */
+    @Override
+    public void onResume() {
+        super.onResume();
+        presenter.subscribe();
+    }
+
+    /**
+     * 界面退到后台时, 清除读取数据库数据的任务
+     */
+    @Override
+    public void onPause() {
+        super.onPause();
+        presenter.unsubscribe();
+        // 取消显示加载view
+        setLoadingIndicator(false);
+    }
+
+    /**
+     * 加载menu菜单
+     * @param menu
+     * @param inflater
+     */
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.packages_list, menu);
+    }
+
+    /**
+     * 设置menu item的点击事件
+     * 这个方法只在onCreateOptionsMenu 创建的菜单被选中时才会被触发
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_search:
+                break;
+            case R.id.action_mark_all_read:
+                break;
+        }
+        return true;
+    }
+
+    /**
+     * 这个方法只在onCreateContextMenu 创建的菜单被选中时才会被触发
+     * @param item
+     * @return
+     */
+    @Override
+        public boolean onContextItemSelected(MenuItem item) {
+        return super.onContextItemSelected(item);
     }
 
     @Override
