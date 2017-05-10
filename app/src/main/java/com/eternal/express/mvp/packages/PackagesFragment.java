@@ -84,6 +84,7 @@ public class PackagesFragment extends Fragment implements PackagesContract.View 
                         break;
                 }
 
+                // 每次切换后, 更新数据
                 presenter.loadPackages();
                 return true;
             }

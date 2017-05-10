@@ -48,6 +48,7 @@ public class PackagesLocalDataSource implements PackagesDataSource {
      */
     @Override
     public Observable<List<Package>> getPackages() {
+        // 获取realm数据库
         Realm rlm = RealmHelper.newRealmInstance();
 
         return Observable.just(rlm.copyFromRealm(rlm.where(Package.class)
