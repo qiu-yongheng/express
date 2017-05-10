@@ -235,4 +235,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             getSupportFragmentManager().putFragment(outState, "CompaniesFragment", companiesFragment);
         }
     }
+
+    /**
+     * 可以获取当前选中的item的运单号
+     * @param number
+     */
+    public void setSelectedPackageId(String number) {
+        packagesFragment.setSelectedPackage(number);
+    }
 }
