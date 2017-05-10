@@ -5,10 +5,21 @@ import android.support.annotation.Nullable;
 
 import com.eternal.express.data.bean.Package;
 import com.eternal.express.data.source.PackagesDataSource;
+import com.eternal.express.retrofit.RetrofitClient;
+import com.eternal.express.retrofit.RetrofitService;
 
 import java.util.List;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+
+import static com.eternal.express.realm.RealmHelper.DATABASE_NAME;
 
 /**
  * Created by 邱永恒
@@ -59,14 +70,95 @@ public class PackagesRemoteDataSource implements PackagesDataSource {
 
     }
 
+    /**
+     * 通过网络更新数据
+     * @return
+     */
     @Override
     public Observable<List<Package>> refreshPackages() {
-        return null;
+        // It is necessary to build a new realm instance (有必要创建一个新的realm对象)
+        // in a different thread. (在不同的线程)
+        Realm realm = Realm.getInstance(new RealmConfiguration.Builder()
+                .deleteRealmIfMigrationNeeded()
+                .name(DATABASE_NAME)
+                .build());
+
+        return Observable.fromIterable(realm.copyFromRealm(realm.where(Package.class).findAll()))
+                .subscribeOn(Schedulers.io())
+                .flatMap(new Function<Package, ObservableSource<Package>>() {
+                    @Override
+                    public ObservableSource<Package> apply(Package aPackage) throws Exception {
+                        // A nested request. (单独请求每一个item)
+                        return refreshPackage(aPackage.getNumber());
+                    }
+                })
+                .toList()
+                .toObservable();
     }
 
+    /**
+     *
+     * @param packageId
+     * @return
+     */
     @Override
     public Observable<Package> refreshPackage(@NonNull String packageId) {
-        return null;
+        // It is necessary to build a new realm instance (有必要创建一个新的realm对象)
+        // in a different thread. (在不同的线程)
+        Realm realm = Realm.getInstance(new RealmConfiguration.Builder()
+                .deleteRealmIfMigrationNeeded()
+                .name(DATABASE_NAME)
+                .build());
+
+        // 设置一个副本，而不是使用原始数据
+        final Package p = realm.copyFromRealm(realm.where(Package.class)
+                .equalTo("number", packageId)
+                .findFirst());
+
+        // retrofit + rxjava 网络请求
+        return RetrofitClient.getInstance()
+                .create(RetrofitService.class) // 创建API对象
+                .getPackageState(p.getCompany(), p.getNumber()) // 调用retrofit方法请求
+                .filter(new Predicate<Package>() { // 筛选更新日期最新的数据, 返回
+                    @Override
+                    public boolean test(Package aPackage) throws Exception {
+                        return aPackage.getData() != null && aPackage.getData().size() > p.getData().size();
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .doOnNext(new Consumer<Package>() {
+                    @Override
+                    public void accept(Package aPackage) throws Exception {
+
+                        // To avoid the server error or other problems
+                        // making the data in database being dirty.
+                        if (aPackage != null && aPackage.getData() != null) {
+                            // It is necessary to build a new realm instance
+                            // in a different thread.
+                            Realm rlm = Realm.getInstance(new RealmConfiguration.Builder()
+                                    .deleteRealmIfMigrationNeeded()
+                                    .name(DATABASE_NAME)
+                                    .build());
+
+                            // Only when the origin data is null or the origin
+                            // data's size is less than the latest data's size
+                            // set the package unread new(readable = true).
+                            if (p.getData() == null || aPackage.getData().size() > p.getData().size()) {
+                                p.setReadable(true);
+                                p.setPushable(true);
+                                p.setState(aPackage.getState());
+                            }
+
+                            p.setData(aPackage.getData());
+                            // DO NOT forget to begin a transaction.
+                            rlm.beginTransaction();
+                            rlm.copyToRealmOrUpdate(p);
+                            rlm.commitTransaction();
+
+                            rlm.close();
+                        }
+                    }
+                });
     }
 
     @Override

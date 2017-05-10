@@ -87,17 +87,21 @@ public class PackagesPresenter implements PackagesContract.Presenter{
                 .subscribeWith(new DisposableObserver<List<Package>>() {
                     @Override
                     public void onNext(List<Package> value) {
+                        // 回调从数据库获取到的packages数据
                         view.showPackages(value);
                     }
 
                     @Override
                     public void onError(Throwable e) {
+                        // 显示空界面
                         view.showEmptyView(true);
+                        // 停止显示加载
                         view.setLoadingIndicator(false);
                     }
 
                     @Override
                     public void onComplete() {
+                        // 停止显示加载
                         view.setLoadingIndicator(false);
                     }
                 });
@@ -106,9 +110,36 @@ public class PackagesPresenter implements PackagesContract.Presenter{
         mCompositeDisposable.add(disposable);
     }
 
+    /**
+     * 通过网络来更新packages数据
+     * 网络获取数据后, 保存到本地
+     * 调用loadPackages()方法获取本地数据库数据, 回调给fragment
+     */
     @Override
     public void refreshPackages() {
+        Disposable disposable = packagesRepository
+                .refreshPackages()
+                .observeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<List<Package>>() {
+                    @Override
+                    public void onNext(List<Package> value) {
 
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        view.setLoadingIndicator(false);
+                        view.showNetworkError();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        view.setLoadingIndicator(false);
+                        loadPackages();
+                    }
+                });
+        mCompositeDisposable.add(disposable);
     }
 
     @Override

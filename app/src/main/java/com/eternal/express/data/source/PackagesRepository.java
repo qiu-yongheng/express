@@ -63,7 +63,11 @@ public class PackagesRepository implements PackagesDataSource {
     }
 
     /**
+<<<<<<< HEAD
      *  从本地数据库获取数据
+=======
+     * 从本地数据库获取数据
+>>>>>>> 915ad5947bb2bbeab738bd9086a7c92ba1e39724
      * @return
      */
     @Override
@@ -129,9 +133,37 @@ public class PackagesRepository implements PackagesDataSource {
 
     }
 
+    /**
+     * 刷新包。
+     * 只需调用远程数据源即可完成所有操作。
+     * @return
+     */
     @Override
     public Observable<List<Package>> refreshPackages() {
-        return null;
+        return packagesRemoteDataSource
+                .refreshPackages() // 远程数据源获取数据
+                .flatMap(new Function<List<Package>, ObservableSource<List<Package>>>() {
+                    @Override
+                    public ObservableSource<List<Package>> apply(List<Package> packages) throws Exception {
+
+                        return Observable
+                                .fromIterable(packages)
+                                .doOnNext(new Consumer<Package>() {
+                                    @Override
+                                    public void accept(Package aPackage) throws Exception {
+                                        // 从网络获取到数据, 保存到本地数据库
+                                        Package p = cachedPackages.get(aPackage.getNumber());
+                                        if (p != null) {
+                                            p.setData(aPackage.getData());
+                                            p.setPushable(true);
+                                            p.setReadable(true);
+                                        }
+                                    }
+                                })
+                                .toList()
+                                .toObservable();
+                    }
+                });
     }
 
     @Override
