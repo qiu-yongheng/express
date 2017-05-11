@@ -57,7 +57,7 @@ public class PackagesPresenter implements PackagesContract.Presenter{
         mCompositeDisposable.clear();
         /** 从数据库获取数据 */
         Disposable disposable = packagesRepository
-                .getPackages()
+                .getPackages() // 获取数据库中的数据
                 .flatMap(new Function<List<Package>, ObservableSource<Package>>() { // 遍历
                     @Override
                     public ObservableSource<Package> apply(List<Package> packages) throws Exception {
@@ -67,7 +67,9 @@ public class PackagesPresenter implements PackagesContract.Presenter{
                 .filter(new Predicate<Package>() { // 过滤
                     @Override
                     public boolean test(Package aPackage) throws Exception {
+                        // 获取包裹快递状态
                         int state = Integer.parseInt(aPackage.getState());
+                        // 根据当前选中的界面, 显示对应状态的数据
                         switch (currentFiltering) {
                             case ON_THE_WAY_PACKAGES:
                                 return state != Package.STATUS_DELIVERED;
@@ -118,7 +120,7 @@ public class PackagesPresenter implements PackagesContract.Presenter{
     @Override
     public void refreshPackages() {
         Disposable disposable = packagesRepository
-                .refreshPackages()
+                .refreshPackages() // 从网络获取数据, 并保存到数据库
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<List<Package>>() {

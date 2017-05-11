@@ -134,14 +134,14 @@ public class PackagesRepository implements PackagesDataSource {
     }
 
     /**
-     * 刷新包。
-     * 只需调用远程数据源即可完成所有操作。
+     * 调用remote接口, 从网络获取数据
+     * 获取到数据后, 保存数据到数据库
      * @return
      */
     @Override
     public Observable<List<Package>> refreshPackages() {
         return packagesRemoteDataSource
-                .refreshPackages() // 远程数据源获取数据
+                .refreshPackages() // 使用retrofit + rxjava 获取数据
                 .flatMap(new Function<List<Package>, ObservableSource<List<Package>>>() {
                     @Override
                     public ObservableSource<List<Package>> apply(List<Package> packages) throws Exception {

@@ -97,7 +97,8 @@ public class PackagesRemoteDataSource implements PackagesDataSource {
     }
 
     /**
-     *
+     * retrofit + rxjava 网络请求
+     * 保存数据到数据库
      * @param packageId
      * @return
      */
@@ -110,7 +111,7 @@ public class PackagesRemoteDataSource implements PackagesDataSource {
                 .name(DATABASE_NAME)
                 .build());
 
-        // 设置一个副本，而不是使用原始数据
+        // 设置一个副本，而不是使用原始数据 ()
         final Package p = realm.copyFromRealm(realm.where(Package.class)
                 .equalTo("number", packageId)
                 .findFirst());
@@ -119,13 +120,14 @@ public class PackagesRemoteDataSource implements PackagesDataSource {
         return RetrofitClient.getInstance()
                 .create(RetrofitService.class) // 创建API对象
                 .getPackageState(p.getCompany(), p.getNumber()) // 调用retrofit方法请求
-                .filter(new Predicate<Package>() { // 筛选更新日期最新的数据, 返回
+                .filter(new Predicate<Package>() {
                     @Override
                     public boolean test(Package aPackage) throws Exception {
+                        // 筛选更新日期最新的数据, 返回
                         return aPackage.getData() != null && aPackage.getData().size() > p.getData().size();
                     }
                 })
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.io()) // 在IO线程订阅
                 .doOnNext(new Consumer<Package>() {
                     @Override
                     public void accept(Package aPackage) throws Exception {
@@ -142,7 +144,7 @@ public class PackagesRemoteDataSource implements PackagesDataSource {
 
                             // Only when the origin data is null or the origin
                             // data's size is less than the latest data's size
-                            // set the package unread new(readable = true).
+                            // set the package unread new(readable = true). 设置未读
                             if (p.getData() == null || aPackage.getData().size() > p.getData().size()) {
                                 p.setReadable(true);
                                 p.setPushable(true);
@@ -150,11 +152,13 @@ public class PackagesRemoteDataSource implements PackagesDataSource {
                             }
 
                             p.setData(aPackage.getData());
-                            // DO NOT forget to begin a transaction.
+                            // DO NOT forget to begin a transaction. 不要忘记开启事务
                             rlm.beginTransaction();
                             rlm.copyToRealmOrUpdate(p);
+                            // 提交事务
                             rlm.commitTransaction();
 
+                            // 关闭数据库
                             rlm.close();
                         }
                     }
