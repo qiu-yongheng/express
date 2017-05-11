@@ -1,6 +1,7 @@
 package com.eternal.express.mvp.packages;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.RecyclerView;
@@ -49,7 +50,36 @@ public class PackagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        // 获取数据
+        Package item = list.get(position);
+        PackageViewHolder pvh = (PackageViewHolder) holder;
 
+        if (item.getData() != null && item.getData().size() > 0) {
+            // 1. 获取快递当前状态
+            int state = Integer.parseInt(item.getState());
+            pvh.textViewStatus.setText(String.valueOf(packageStatus[state]) + " - " + item.getData().get(0).getContext());
+            pvh.textViewTime.setText(item.getData().get(0).getTime());
+        } else {
+            pvh.textViewTime.setText("");
+            pvh.textViewStatus.setText(R.string.get_status_error);
+        }
+
+        // 2. 判断是否已读, 未读, 设置粗体, 已读, 设置正常
+        if (item.isReadable()) {
+            pvh.textViewPackageName.setTypeface(null, Typeface.BOLD);
+            pvh.textViewTime.setTypeface(null, Typeface.BOLD);
+            pvh.textViewStatus.setTypeface(null, Typeface.BOLD);
+        } else {
+            pvh.textViewPackageName.setTypeface(null, Typeface.NORMAL);
+            pvh.textViewTime.setTypeface(null, Typeface.NORMAL);
+            pvh.textViewStatus.setTypeface(null, Typeface.NORMAL);
+        }
+        // 3. 设置标题
+        pvh.textViewPackageName.setText(item.getName());
+        // 4. 设置圆形图标里的文字
+        pvh.textViewAvatar.setText(item.getName().substring(0,1));
+        // 5. 设置图标填充色
+        pvh.circleImageViewAvatar.setImageResource(item.getColorAvatar());
     }
 
     /**
@@ -86,9 +116,15 @@ public class PackagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             itemView.setOnCreateContextMenuListener(this);
         }
 
+        /**
+         *
+         * @param view
+         */
         @Override
         public void onClick(View view) {
-
+            if (this.listener != null) {
+                listener.OnItemClick(view, getLayoutPosition());
+            }
         }
 
         /**
@@ -106,7 +142,7 @@ public class PackagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 Package pack = list.get(getLayoutPosition());
                 // 设置menu头标题
                 contextMenu.setHeaderTitle(pack.getName());
-                // 根据信息是否读过, 设置不同的menu item
+                // 根据信息是否读过, 添加不同的menu item
                 if (pack.isReadable()) {
                     contextMenu.add(Menu.NONE, R.id.action_set_readable, 0, R.string.set_read);
                 } else {
@@ -120,7 +156,7 @@ public class PackagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemCount() {
-        return 0;
+        return list.size();
     }
 
     /**

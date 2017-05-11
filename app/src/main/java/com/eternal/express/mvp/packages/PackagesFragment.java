@@ -225,13 +225,16 @@ public class PackagesFragment extends Fragment implements PackagesContract.View 
         }
         switch (item.getItemId()) {
             case R.id.action_set_readable:
+                // 设置包裹的读取状态, 参数一: 获取选中的运单号      参数二: boolean 判断是否已读
                 presenter.setPackageReadable(getSelectedPackageNumber(), !item.getTitle().equals(getString(R.string.set_read)));
                 adapter.notifyDataSetChanged();
                 break;
             case R.id.action_copy_code:
+                // 复制运单号
                 copyPackageNumber();
                 break;
             case R.id.action_share:
+                // 分享
                 presenter.setShareData(getSelectedPackageNumber());
                 break;
             default:
