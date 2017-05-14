@@ -1,5 +1,6 @@
 package com.eternal.express.mvp.packages;
 
+import android.app.ActivityOptions;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -28,6 +29,7 @@ import android.widget.LinearLayout;
 import com.eternal.express.R;
 import com.eternal.express.data.bean.Package;
 import com.eternal.express.interfaze.OnRecyclerViewItemClickListener;
+import com.eternal.express.mvp.addpackage.AddPackageActivity;
 
 import java.util.List;
 
@@ -122,7 +124,8 @@ public class PackagesFragment extends Fragment implements PackagesContract.View 
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                //自定义界面切换动画, 启动添加包裹的界面
+                startActivity(new Intent(getContext(), AddPackageActivity.class), ActivityOptions.makeSceneTransitionAnimation(getActivity()).toBundle());
             }
         });
 

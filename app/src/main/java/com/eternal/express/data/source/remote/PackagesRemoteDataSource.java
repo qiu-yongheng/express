@@ -175,6 +175,11 @@ public class PackagesRemoteDataSource implements PackagesDataSource {
 
     }
 
+    /**
+     *
+     * @param packageId
+     * @return
+     */
     @Override
     public boolean isPackageExist(@NonNull String packageId) {
         return false;

@@ -24,6 +24,10 @@ import io.reactivex.functions.Function;
  * 从服务器获取，仅使用本地数据库的远程数据源
  * 不是最新的。
  * 个人理解是model层的封装, 所有数据的获取与缓存都在这里进行
+ *
+ * 这里使用双缓冲来获取数据:
+ * 1. 当刷新时, 数据从网络缓存到数据库, 然后从数据库取出数据, 缓存到map集合中 (双缓冲)
+ * 2. 当获取数据时, 直接从map集合中获取数据, 减少对数据库的读取
  */
 
 public class PackagesRepository implements PackagesDataSource {
@@ -63,11 +67,7 @@ public class PackagesRepository implements PackagesDataSource {
     }
 
     /**
-<<<<<<< HEAD
      *  从本地数据库获取数据
-=======
-     * 从本地数据库获取数据
->>>>>>> 915ad5947bb2bbeab738bd9086a7c92ba1e39724
      * @return
      */
     @Override
@@ -77,7 +77,7 @@ public class PackagesRepository implements PackagesDataSource {
             return Observable.fromCallable(new Callable<List<Package>>() {
                 @Override
                 public List<Package> call() throws Exception {
-                    List<Package> arrayList = new ArrayList<Package>(cachedPackages.values());
+                    List<Package> arrayList = new ArrayList<>(cachedPackages.values());
                     // 按时间戳排序，使列表以下降方式显示
                     Collections.sort(arrayList, new Comparator<Package>() {
                         @Override
@@ -123,14 +123,36 @@ public class PackagesRepository implements PackagesDataSource {
         return null;
     }
 
+    /**
+     * 保存数据到数据库
+     * 保存数据到缓存
+     * @param pack
+     */
     @Override
     public void savePackage(@NonNull Package pack) {
-
+        // 保存到数据库
+        packagesLocalDataSource.savePackage(pack);
+        if (cachedPackages == null) {
+            cachedPackages = new LinkedHashMap<>();
+        }
+        // 保存到缓存
+        if (!isPackageExist(pack.getNumber())) {
+            cachedPackages.put(pack.getNumber(), pack);
+        }
     }
 
+    /**
+     * 本地数据库删除
+     * 当前缓存删除
+     * @param packageId
+     */
     @Override
     public void deletePackage(@NonNull String packageId) {
-
+        cachePackage = getPackageWithNumber(packageId);
+        // 从数据库中删除 (第一缓存)
+        packagesLocalDataSource.deletePackage(packageId);
+        // 从map中删除 (第二缓存)
+        cachedPackages.remove(packageId);
     }
 
     /**
@@ -181,9 +203,14 @@ public class PackagesRepository implements PackagesDataSource {
 
     }
 
+    /**
+     * 判断运单号对应的缓存数据是否存在
+     * @param packageId
+     * @return
+     */
     @Override
     public boolean isPackageExist(@NonNull String packageId) {
-        return false;
+        return getPackageWithNumber(packageId) != null;
     }
 
     @Override
@@ -194,5 +221,19 @@ public class PackagesRepository implements PackagesDataSource {
     @Override
     public Observable<List<Package>> searchPackages(@NonNull String keyWords) {
         return null;
+    }
+
+    /**
+     * Get a package with package number.
+     * @param packNumber The package id(number). See more @{@link Package#number}.
+     * @return The package with specific number.
+     */
+    @Nullable
+    private Package getPackageWithNumber(@NonNull String packNumber) {
+        if (cachedPackages == null || cachedPackages.isEmpty()) {
+            return null;
+        } else {
+            return cachedPackages.get(packNumber);
+        }
     }
 }

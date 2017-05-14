@@ -60,14 +60,36 @@ public class PackagesLocalDataSource implements PackagesDataSource {
         return null;
     }
 
+    /**
+     * 保存数据到数据库
+     * @param pack
+     */
     @Override
     public void savePackage(@NonNull Package pack) {
-
+        Realm rlm = RealmHelper.newRealmInstance();
+        // DO NOT forget begin and commit the transaction.
+        rlm.beginTransaction();
+        rlm.copyToRealmOrUpdate(pack);
+        rlm.commitTransaction();
+        rlm.close();
     }
 
+    /**
+     * 从数据库删除数据
+     * @param packageId
+     */
     @Override
     public void deletePackage(@NonNull String packageId) {
-
+        Realm rlm = RealmHelper.newRealmInstance();
+        Package p = rlm.where(Package.class)
+                .equalTo("number", packageId)
+                .findFirst();
+        if (p != null) {
+            rlm.beginTransaction();
+            p.deleteFromRealm();
+            rlm.commitTransaction();
+        }
+        rlm.close();
     }
 
     @Override
