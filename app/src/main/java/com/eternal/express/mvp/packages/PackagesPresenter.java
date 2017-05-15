@@ -144,9 +144,13 @@ public class PackagesPresenter implements PackagesContract.Presenter{
         mCompositeDisposable.add(disposable);
     }
 
+    /**
+     * 设置所有信息已读
+     */
     @Override
     public void markAllPacksRead() {
-
+        packagesRepository.setAllPackagesRead();
+        loadPackages();
     }
 
     /**
@@ -160,12 +164,18 @@ public class PackagesPresenter implements PackagesContract.Presenter{
 
     @Override
     public PackageFilterType getFiltering() {
-        return null;
+        return currentFiltering;
     }
 
+    /**
+     * 设置指定信息已读或未读
+     * @param packageId
+     * @param readable
+     */
     @Override
     public void setPackageReadable(@NonNull String packageId, boolean readable) {
-
+        packagesRepository.setPackageReadable(packageId, readable);
+        loadPackages();
     }
 
     @Override

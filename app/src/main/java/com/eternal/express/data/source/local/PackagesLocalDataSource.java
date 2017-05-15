@@ -80,14 +80,45 @@ public class PackagesLocalDataSource implements PackagesDataSource {
         return null;
     }
 
+    /**
+     * 从数据库获取数据, 修改完后, 再update
+     */
     @Override
     public void setAllPackagesRead() {
+        Realm rlm = RealmHelper.newRealmInstance();
+        List<Package> results = rlm.copyFromRealm(rlm.where(Package.class).findAll());
 
+        for (Package p : results) {
+            p.setReadable(false);
+            p.setPushable(false);
+            rlm.beginTransaction();
+            rlm.copyToRealmOrUpdate(p);
+            rlm.commitTransaction();
+        }
+        rlm.close();
     }
 
+    /**
+     * 更新数据库中的数据
+     * @param packageId
+     * @param readable
+     */
     @Override
     public void setPackageReadable(@NonNull String packageId, boolean readable) {
+        Realm rlm = RealmHelper.newRealmInstance();
+        Package p = rlm.copyFromRealm(rlm.where(Package.class)
+                .equalTo("number", packageId)
+                .findFirst());
 
+        if (p != null) {
+            rlm.beginTransaction();
+            p.setReadable(readable);
+            // When a package is not readable, it is not pushable.
+            p.setPushable(readable);
+            rlm.copyToRealmOrUpdate(p);
+            rlm.commitTransaction();
+            rlm.close();
+        }
     }
 
     @Override

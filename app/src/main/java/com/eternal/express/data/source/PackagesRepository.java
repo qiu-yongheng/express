@@ -8,6 +8,7 @@ import com.eternal.express.data.bean.Package;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,11 +64,7 @@ public class PackagesRepository implements PackagesDataSource {
     }
 
     /**
-<<<<<<< HEAD
-     *  从本地数据库获取数据
-=======
      * 从本地数据库获取数据
->>>>>>> 915ad5947bb2bbeab738bd9086a7c92ba1e39724
      * @return
      */
     @Override
@@ -171,14 +168,41 @@ public class PackagesRepository implements PackagesDataSource {
         return null;
     }
 
+    /**
+     * 设置所有信息已读
+     * Set the packages read in both data source and cache.
+     */
     @Override
     public void setAllPackagesRead() {
+        packagesLocalDataSource.setAllPackagesRead();
+        // 当从数据库读取数据时, 已经把数据保存到cachedPackages
+        if (cachedPackages == null) {
+            cachedPackages = new HashMap<>();
+        }
 
+        // 如果之前有读取过数据, 直接修改
+        for (Package p : cachedPackages.values()) {
+            // 设置已读
+            p.setReadable(false);
+            p.setPushable(false);
+        }
     }
 
+    /**
+     * 设置指定信息已读或未读
+     * 数据库与缓存都要更新
+     * @param packageId
+     * @param readable
+     */
     @Override
     public void setPackageReadable(@NonNull String packageId, boolean readable) {
+        // 根据key获取value (缓存更新)
+        Package p = cachedPackages.get(packageId);
+        p.setReadable(readable);
+        p.setPushable(readable);
 
+        // 数据库更新
+        packagesLocalDataSource.setPackageReadable(packageId, readable);
     }
 
     @Override
