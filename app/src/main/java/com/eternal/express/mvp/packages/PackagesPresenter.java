@@ -29,6 +29,7 @@ public class PackagesPresenter implements PackagesContract.Presenter{
     @NonNull
     private PackageFilterType currentFiltering = PackageFilterType.ALL_PACKAGES;
     private final CompositeDisposable mCompositeDisposable;
+    private Package mayRemovePackage;
 
     public PackagesPresenter(PackagesContract.View view, PackagesRepository packagesRepository) {
         this.view = view;
@@ -178,18 +179,112 @@ public class PackagesPresenter implements PackagesContract.Presenter{
         loadPackages();
     }
 
+    /**
+     * 删除package
+     * 给用户撤销的机会
+     * @param position
+     */
     @Override
-    public void deletePackage(int position) {
+    public void deletePackage(final int position) {
+        if (position < 0) {
+            return;
+        }
 
+        Disposable disposable = packagesRepository
+                .getPackages() // 从数据库获取所有数据
+                .flatMap(new Function<List<Package>, ObservableSource<Package>>() {
+                    @Override
+                    public ObservableSource<Package> apply(List<Package> list) throws Exception {
+                        return Observable.fromIterable(list);
+                    }
+                })
+                .filter(new Predicate<Package>() {
+                    @Override
+                    public boolean test(Package aPackage) throws Exception {
+                        // 根据选中的不同界面显示不同的数据
+                        int state = Integer.parseInt(aPackage.getState());
+                        switch (currentFiltering) {
+                            case ON_THE_WAY_PACKAGES:
+                                return state != Package.STATUS_DELIVERED;
+                            case DELIVERED_PACKAGES:
+                                return state == Package.STATUS_DELIVERED;
+                            case ALL_PACKAGES:
+                                return true;
+                            default:
+                                return true;
+                        }
+                    }
+                })
+                .toList()
+                .toObservable()
+                .subscribeOn(Schedulers.io()) // 事件产生的线程
+                .observeOn(AndroidSchedulers.mainThread()) // 事件消费的线程
+                .subscribeWith(new DisposableObserver<List<Package>>() {
+                    @Override
+                    public void onNext(List<Package> value) {
+                        // 根据position获取要移除的包裹数据
+                        mayRemovePackage = value.get(position);
+                        // 根据运单号删除数据
+                        packagesRepository.deletePackage(mayRemovePackage.getNumber());
+                        // 从缓存中删除数据
+                        value.remove(position);
+                        // 重新加载数据
+                        view.showPackages(value);
+                        // 显示删除提示, 并提供撤销机会
+                        view.showPackageRemovedMsg(mayRemovePackage.getName());
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+        mCompositeDisposable.add(disposable);
     }
 
+    /**
+     * 选中item, 分享
+     * @param packageId
+     */
     @Override
     public void setShareData(@NonNull String packageId) {
+        Disposable disposable = packagesRepository
+                .getPackage(packageId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<Package>() {
+                    @Override
+                    public void onNext(Package aPackage) {
+                        view.shareTo(aPackage);
+                    }
 
+                    @Override
+                    public void onError(Throwable throwable) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
+        mCompositeDisposable.add(disposable);
     }
 
+    /**
+     * 恢复移除的item
+     */
     @Override
     public void recoverPackage() {
-
+        if (mayRemovePackage != null) {
+            packagesRepository.savePackage(mayRemovePackage);
+        }
+        loadPackages();
     }
 }
