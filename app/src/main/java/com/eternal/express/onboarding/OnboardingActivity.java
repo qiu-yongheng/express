@@ -75,7 +75,6 @@ public class OnboardingActivity extends AppCompatActivity implements View.OnClic
     private void initBoard() {
         mSp = PreferenceManager.getDefaultSharedPreferences(this);
         // 判断是否第一次打开APP
-        boolean aBoolean = mSp.getBoolean(SettingsUtil.KEY_FIRST_LAUNCH, true);
         if (mSp.getBoolean(SettingsUtil.KEY_FIRST_LAUNCH, true)) {
             initView();
             initData();
