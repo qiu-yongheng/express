@@ -4,7 +4,9 @@ import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -33,6 +35,7 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
     private CompaniesContract.Presenter presenter;
 
     public CompaniesFragment() {
+
     }
 
     /**
@@ -83,7 +86,8 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
 
     @Override
     public void initViews(View view) {
-
+        recyclerViewCompaniesList.setHasFixedSize(true);
+        recyclerViewCompaniesList.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
     @Override
@@ -93,9 +97,12 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
 
     @Override
     public void showGetCompaniesError() {
-
+        Snackbar.make(recyclerViewCompaniesList, "获取失败", Snackbar.LENGTH_SHORT).show();
     }
 
+    /**
+     * 显示所有的快递公司
+     */
     @Override
     public void showCompanies() {
 
@@ -104,13 +111,13 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
     @Override
     public void onResume() {
         super.onResume();
-        presenter.subscribe();
+        //presenter.subscribe();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        presenter.unsubscribe();
+        //presenter.unsubscribe();
     }
 
     @Override
