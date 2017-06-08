@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 import com.eternal.express.R;
 import com.eternal.express.component.FastScrollRecyclerView;
 import com.eternal.express.data.bean.Company;
+import com.eternal.express.interfaze.OnRecyclerViewItemClickListener;
+import com.eternal.express.mvp.companiesdetails.CompanyDetailActivity;
 import com.eternal.express.mvp.search.SearchActivity;
 
 import java.util.List;
@@ -36,6 +38,7 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
     FastScrollRecyclerView recyclerViewCompaniesList;
     Unbinder unbinder;
     private CompaniesContract.Presenter presenter;
+    private CompaniesAdapter adapter;
 
     public CompaniesFragment() {
 
@@ -74,7 +77,7 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
 
     /**
      * 设置menu的点击事件
-     *
+     * 打开搜索界面
      * @param item
      * @return
      */
@@ -87,9 +90,12 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
         return true;
     }
 
+    /**
+     * 初始化recyclerview
+     * @param view
+     */
     @Override
     public void initViews(View view) {
-        recyclerViewCompaniesList.setHasFixedSize(true);
         recyclerViewCompaniesList.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
@@ -110,8 +116,20 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
      * @param value
      */
     @Override
-    public void showCompanies(List<Company> value) {
-
+    public void showCompanies(final List<Company> value) {
+        if (adapter == null) {
+            adapter = new CompaniesAdapter(getContext(), value);
+            adapter.setOnRecyclerViewItemClickListener(new OnRecyclerViewItemClickListener() {
+                @Override
+                public void OnItemClick(View v, int position) {
+                    // 跳转到快递详情界面
+                    Intent intent = new Intent(getContext(), CompanyDetailActivity.class);
+                    intent.putExtra(CompanyDetailActivity.COMPANY_ID, value.get(position).getId());
+                    startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(getActivity()).toBundle());
+                }
+            });
+            recyclerViewCompaniesList.setAdapter(adapter);
+        }
     }
 
     @Override

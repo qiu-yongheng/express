@@ -9,11 +9,11 @@ import android.transition.Explode;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.eternal.express.R;
+import com.eternal.express.data.source.CompaniesRepository;
 import com.eternal.express.data.source.PackagesRepository;
+import com.eternal.express.data.source.local.CompaniesLocalDataSource;
 import com.eternal.express.data.source.local.PackagesLocalDataSource;
 import com.eternal.express.data.source.remote.PackagesRemoteDataSource;
-
-import static android.R.attr.fragment;
 
 /**
  * @author 邱永恒

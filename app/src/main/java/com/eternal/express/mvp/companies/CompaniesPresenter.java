@@ -51,7 +51,7 @@ public class CompaniesPresenter implements CompaniesContract.Presenter{
      */
     private void getCompanies() {
         Disposable disposable = companiesRepository
-                .getCompanies()
+                .getCompanies() // 获取所有的快递公司
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<List<Company>>() {
