@@ -17,7 +17,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
 
+import com.eternal.express.data.source.CompaniesRepository;
 import com.eternal.express.data.source.PackagesRepository;
+import com.eternal.express.data.source.local.CompaniesLocalDataSource;
 import com.eternal.express.data.source.local.PackagesLocalDataSource;
 import com.eternal.express.data.source.remote.PackagesRemoteDataSource;
 import com.eternal.express.mvp.companies.CompaniesFragment;
@@ -99,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     private void initPresenter(Bundle savedInstanceState) {
         packagesPresenter = new PackagesPresenter(packagesFragment, PackagesRepository.getInstance(PackagesRemoteDataSource.getInstance(), PackagesLocalDataSource.getInstance()));
-        new CompaniesPresenter();
+        new CompaniesPresenter(companiesFragment, CompaniesRepository.getInstance(CompaniesLocalDataSource.getInstance()));
 
         // Get data from Bundle.
         if (savedInstanceState != null) {

@@ -1,7 +1,10 @@
 package com.eternal.express.mvp.companies;
 
+import com.eternal.express.data.bean.Company;
 import com.eternal.express.mvp.BasePresenter;
 import com.eternal.express.mvp.BaseView;
+
+import java.util.List;
 
 /**
  * @author 邱永恒
@@ -14,7 +17,7 @@ public interface CompaniesContract {
 
         void showGetCompaniesError();
 
-        void showCompanies();
+        void showCompanies(List<Company> value);
 
     }
 

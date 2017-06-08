@@ -4,7 +4,9 @@ import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,7 +16,10 @@ import android.view.ViewGroup;
 
 import com.eternal.express.R;
 import com.eternal.express.component.FastScrollRecyclerView;
+import com.eternal.express.data.bean.Company;
 import com.eternal.express.mvp.search.SearchActivity;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -83,7 +88,7 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
 
     @Override
     public void initViews(View view) {
-
+        recyclerViewCompaniesList.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
     @Override
@@ -93,11 +98,17 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
 
     @Override
     public void showGetCompaniesError() {
-
+        Snackbar.make(recyclerViewCompaniesList, "获取失败", Snackbar.LENGTH_SHORT).show();
     }
 
+    /**
+     * 创建adapter
+     * 设置数据
+     * recyclerview绑定数据
+     * @param value
+     */
     @Override
-    public void showCompanies() {
+    public void showCompanies(List<Company> value) {
 
     }
 
