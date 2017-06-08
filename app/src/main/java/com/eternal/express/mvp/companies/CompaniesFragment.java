@@ -38,6 +38,7 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
     private CompaniesContract.Presenter presenter;
 
     public CompaniesFragment() {
+
     }
 
     /**
@@ -88,6 +89,7 @@ public class CompaniesFragment extends Fragment implements CompaniesContract.Vie
 
     @Override
     public void initViews(View view) {
+        recyclerViewCompaniesList.setHasFixedSize(true);
         recyclerViewCompaniesList.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 

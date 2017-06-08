@@ -100,8 +100,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * @param savedInstanceState
      */
     private void initPresenter(Bundle savedInstanceState) {
+<<<<<<< HEAD
         packagesPresenter = new PackagesPresenter(packagesFragment, PackagesRepository.getInstance(PackagesRemoteDataSource.getInstance(), PackagesLocalDataSource.getInstance()));
         new CompaniesPresenter(companiesFragment, CompaniesRepository.getInstance(CompaniesLocalDataSource.getInstance()));
+=======
+        packagesPresenter = new PackagesPresenter(packagesFragment,
+                PackagesRepository.getInstance(PackagesRemoteDataSource.getInstance(),
+                PackagesLocalDataSource.getInstance()));
+        new CompaniesPresenter();
+>>>>>>> dfb85a2d502a63de6ab6b50c3e41f3d945e8d879
 
         // Get data from Bundle.
         if (savedInstanceState != null) {
