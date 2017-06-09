@@ -4,8 +4,11 @@ import android.animation.ArgbEvaluator;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
@@ -19,6 +22,8 @@ import android.widget.ImageView;
 
 import com.eternal.express.MainActivity;
 import com.eternal.express.R;
+import com.eternal.express.data.source.CompaniesRepository;
+import com.eternal.express.data.source.local.CompaniesLocalDataSource;
 import com.eternal.express.util.SettingsUtil;
 
 import butterknife.BindView;
@@ -53,6 +58,7 @@ public class OnboardingActivity extends AppCompatActivity implements View.OnClic
     private int[] mBgcolors;
     private int currentPosition;
     private SharedPreferences mSp;
+    private static final int MSG_DATA_INSERT_FINISH = 1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -76,6 +82,7 @@ public class OnboardingActivity extends AppCompatActivity implements View.OnClic
         mSp = PreferenceManager.getDefaultSharedPreferences(this);
         // 判断是否第一次打开APP
         if (mSp.getBoolean(SettingsUtil.KEY_FIRST_LAUNCH, true)) {
+            new InitCompaniesDataTask().execute();
             initView();
             initData();
             initListener();
@@ -196,5 +203,51 @@ public class OnboardingActivity extends AppCompatActivity implements View.OnClic
         // 在新的栈启动activity
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(i);
+    }
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_DATA_INSERT_FINISH:
+                    mButtonFinish.setText(R.string.onboarding_finish_button_description);
+                    mButtonFinish.setEnabled(true);
+                    break;
+            }
+        }
+    };
+
+    /**
+     * 异步线程任务
+     */
+    private class InitCompaniesDataTask extends AsyncTask<Void, Void, Void> {
+
+        /**
+         * 手动录入快递公司数据
+         * @param params
+         * @return
+         */
+        @Override
+        protected Void doInBackground(Void... params) {
+            CompaniesRepository
+                    .getInstance(CompaniesLocalDataSource.getInstance())
+                    .initData();
+            return null;
+        }
+
+        /**
+         *
+         * @param aVoid
+         */
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            handler.sendEmptyMessage(MSG_DATA_INSERT_FINISH);
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+
+        }
     }
 }

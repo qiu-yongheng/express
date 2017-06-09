@@ -1,5 +1,6 @@
 package com.eternal.express.data.source;
 
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -18,7 +19,7 @@ import io.reactivex.Observable;
 public class CompaniesRepository implements CompaniesDataSource{
     @Nullable
     private static CompaniesRepository INSTANCE = null;
-    @Nullable
+    @NonNull
     private final CompaniesDataSource localDataSource;
 
     // Prevent direct instantiation
